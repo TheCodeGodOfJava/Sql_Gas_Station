@@ -37,12 +37,12 @@ WHERE s.name = @schema
 EXEC sp_executesql  @sql;
 
 --============================
---creating Person table
+--creating Persons table
 
-IF OBJECT_ID('[IvanovCollection].[Person]', 'U') IS NOT NULL		
-	EXEC ('DROP TABLE [IvanovCollection].[Person]')	
+IF OBJECT_ID('[IvanovCollection].[Persons]', 'U') IS NOT NULL		
+	EXEC ('DROP TABLE [IvanovCollection].[Persons]')	
 
-CREATE TABLE [IvanovCollection].[Person] (
+CREATE TABLE [IvanovCollection].[Persons] (
 		[PersonId]		BIGINT IDENTITY(1, 1) PRIMARY KEY,
 		[Name]			VARCHAR (50) NOT NULL,
 		[Surname]		VARCHAR (50) NOT NULL,
@@ -52,7 +52,7 @@ CREATE TABLE [IvanovCollection].[Person] (
 		[MaritalStatus]	CHAR (1) NOT NULL
 );
 
-INSERT INTO [IvanovCollection].[Person] ([Name], [Surname], [Patronymic], [DateOfBirth], [Sex], [MaritalStatus])
+INSERT INTO [IvanovCollection].[Persons] ([Name], [Surname], [Patronymic], [DateOfBirth], [Sex], [MaritalStatus])
 VALUES 
 ('Ivan', 'Drago', 'Petrovich', '19840210', 'S', 'M'),
 ('Jonathan', 'Martin', null, '19870311', 'M', 'F'),
@@ -61,12 +61,12 @@ VALUES
 
 
 --============================
---creating Employee table
+--creating Employees table
 
-IF OBJECT_ID('[IvanovCollection].[Employee]', 'U') IS NOT NULL
-	EXEC ('DROP TABLE [IvanovCollection].[Employee]')
+IF OBJECT_ID('[IvanovCollection].[Employees]', 'U') IS NOT NULL
+	EXEC ('DROP TABLE [IvanovCollection].[Employees]')
 
-CREATE TABLE [IvanovCollection].[Employee] (
+CREATE TABLE [IvanovCollection].[Employees] (
 	[EmployeeId]	BIGINT IDENTITY(1, 1) PRIMARY KEY,
 	[JobTitle]		VARCHAR (50) NOT NULL,
 	[HireDate]		DATE DEFAULT GETDATE() NOT NULL,
@@ -75,21 +75,75 @@ CREATE TABLE [IvanovCollection].[Employee] (
 	[ManagerId]		BIGINT NOT NULL
 );
 
-INSERT INTO [IvanovCollection].[Employee] ([JobTitle], [HireDate], [StationId], [PersonId], [ManagerId])
+INSERT INTO [IvanovCollection].[Employees] ([JobTitle], [HireDate], [StationId], [PersonId], [ManagerId])
 VALUES 
 ('Janitor', '20191002', 10, 1, 1),
 ('Salesman', '20180607', 8, 2, 1),
 ('Accountant', '20170901', 8, 3, 2),
 ('Advertiser', '20180503', 8, 4, 1);
 
-----creating foreign key for table Employee to table Employee
-ALTER TABLE [IvanovCollection].[Employee] 
-ADD CONSTRAINT FK_employee_employee
-	FOREIGN KEY ([ManagerId]) 
-	REFERENCES [IvanovCollection].[Employee]([EmployeeId]);
+--============================
+--creating Clients table
 
---creating foreign key for table Employee to table Person
-ALTER TABLE [IvanovCollection].[Employee] 
-ADD CONSTRAINT FK_employee_person 
+IF OBJECT_ID('[IvanovCollection].[Clients]', 'U') IS NOT NULL
+	EXEC ('DROP TABLE [IvanovCollection].[Clients]')
+
+CREATE TABLE [IvanovCollection].[Clients] (
+	[ClientId]		BIGINT IDENTITY(1, 1) PRIMARY KEY,
+	[ServiceType]	VARCHAR (50) NOT NULL,
+	[RegDate]		DATE DEFAULT GETDATE() NOT NULL,
+	[ManagerId]		BIGINT NOT NULL,
+	[Status]		VARCHAR (50) NOT NULL,
+	[TaxId]			VARCHAR (10) UNIQUE NOT NULL,
+	[PersonId]		BIGINT NOT NULL
+);
+
+--============================
+--creating Phones table
+
+IF OBJECT_ID('[IvanovCollection].[Phones]', 'U') IS NOT NULL
+	EXEC ('DROP TABLE [IvanovCollection].[Phones]')
+
+CREATE TABLE [IvanovCollection].[Phones] (
+	[PhoneId]		BIGINT IDENTITY(1, 1) PRIMARY KEY,
+	[Number]		VARCHAR (10) UNIQUE NOT NULL,
+	[Type]			VARCHAR (50) NOT NULL,
+	[PersonId]		BIGINT NOT NULL
+);
+
+INSERT INTO [IvanovCollection].[Phones] ([Number], [Type], [PersonId])
+VALUES 
+('0676542132', 'HOME', 1),
+('0984512454', 'WORK', 2),
+('0669852547', 'HOME', 3),
+('0639513574', 'WORK', 4);
+
+--creating foreign key for table Employees to table Employees
+ALTER TABLE [IvanovCollection].[Employees] 
+ADD CONSTRAINT FK_Employees_Employees
+	FOREIGN KEY ([ManagerId]) 
+	REFERENCES [IvanovCollection].[Employees]([EmployeeId]);
+
+--creating foreign key for table Employees to table Persons
+ALTER TABLE [IvanovCollection].[Employees] 
+ADD CONSTRAINT FK_Employees_Persons 
 	FOREIGN KEY ([PersonId]) 
-	REFERENCES [IvanovCollection].[Person]([PersonId]);
+	REFERENCES [IvanovCollection].[Persons]([PersonId]);
+
+--creating foreign key for table Clients to table Employees
+ALTER TABLE [IvanovCollection].[Clients] 
+ADD CONSTRAINT FK_Clients_Employees 
+	FOREIGN KEY ([ManagerId]) 
+	REFERENCES [IvanovCollection].[Employees]([EmployeeId]);
+
+--creating foreign key for table Clients to table Persons
+ALTER TABLE [IvanovCollection].[Clients] 
+ADD CONSTRAINT FK_Clients_Persons 
+	FOREIGN KEY ([PersonId]) 
+	REFERENCES [IvanovCollection].[Persons]([PersonId]);
+
+--creating foreign key for table Phones to table Persons
+ALTER TABLE [IvanovCollection].[Phones] 
+ADD CONSTRAINT FK_Phones_Persons 
+	FOREIGN KEY ([PersonId]) 
+	REFERENCES [IvanovCollection].[Persons]([PersonId]);
